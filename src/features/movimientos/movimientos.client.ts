@@ -19,6 +19,7 @@ export function fetchSummary() {
   return request<MovimientosAppSummary[]>("/summary");
 }
 
-export function fetchDetail(appKey: string) {
-  return request<MovimientosDetailItem[]>(`/${appKey}/detail`);
+export function fetchDetail(appKey: string, date?: string) {
+  const query = date ? `?date=${date}` : "";
+  return request<MovimientosDetailItem[]>(`/${appKey}/detail${query}`);
 }

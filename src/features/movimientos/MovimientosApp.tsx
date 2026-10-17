@@ -2,11 +2,21 @@ import { useEffect, useState } from "react";
 import { fetchDetail, fetchSummary } from "./movimientos.client";
 import type { MovimientosAppSummary, MovimientosDetailItem } from "./movimientos.types";
 
+// Fecha de hoy en Montevideo, como YYYY-MM-DD -- valor por defecto del
+// selector de fecha del detalle.
+function todayDayLabel() {
+  const montevideoNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Montevideo" }));
+  return `${montevideoNow.getFullYear()}-${String(montevideoNow.getMonth() + 1).padStart(2, "0")}-${String(
+    montevideoNow.getDate()
+  ).padStart(2, "0")}`;
+}
+
 export function MovimientosApp() {
   const [apps, setApps] = useState<MovimientosAppSummary[] | null>(null);
   const [summaryError, setSummaryError] = useState("");
 
   const [selectedApp, setSelectedApp] = useState<MovimientosAppSummary | null>(null);
+  const [selectedDate, setSelectedDate] = useState(() => todayDayLabel());
   const [detailItems, setDetailItems] = useState<MovimientosDetailItem[] | null>(null);
   const [detailError, setDetailError] = useState("");
 
@@ -31,13 +41,24 @@ export function MovimientosApp() {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  function handleOpenApp(app: MovimientosAppSummary) {
-    setSelectedApp(app);
+  function loadDetail(appKey: string, date: string) {
     setDetailItems(null);
     setDetailError("");
-    fetchDetail(app.key)
+    fetchDetail(appKey, date)
       .then(setDetailItems)
       .catch((error) => setDetailError(error instanceof Error ? error.message : "No se pudo cargar el detalle."));
+  }
+
+  function handleOpenApp(app: MovimientosAppSummary) {
+    setSelectedApp(app);
+    const today = todayDayLabel();
+    setSelectedDate(today);
+    loadDetail(app.key, today);
+  }
+
+  function handleDateChange(date: string) {
+    setSelectedDate(date);
+    if (selectedApp) loadDetail(selectedApp.key, date);
   }
 
   if (selectedApp) {
@@ -47,7 +68,16 @@ export function MovimientosApp() {
           <button type="button" className="mov-back" onClick={() => setSelectedApp(null)}>
             ← Volver
           </button>
-          <h1>{selectedApp.label}</h1>
+          <div className="mov-detail-header-row">
+            <h1>{selectedApp.label}</h1>
+            <input
+              type="date"
+              className="mov-date-input"
+              value={selectedDate}
+              max={todayDayLabel()}
+              onChange={(event) => handleDateChange(event.target.value)}
+            />
+          </div>
         </header>
 
         {detailError && <p className="mov-error">{detailError}</p>}

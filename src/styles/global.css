@@ -43,6 +43,29 @@ input {
   font-size: 1.6rem;
 }
 
+.mov-detail-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mov-date-input {
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  color-scheme: dark;
+}
+
+.mov-date-input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
 .mov-muted {
   color: var(--color-muted);
   margin: 4px 0 0;
