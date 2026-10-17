@@ -1,0 +1,210 @@
+:root {
+  --color-bg: #0f1117;
+  --color-surface: #1a1d27;
+  --color-surface-hover: #232733;
+  --color-border: #2c3040;
+  --color-text: #f2f3f7;
+  --color-muted: #9aa0b4;
+  --color-accent: #6366f1;
+  --color-danger: #ef4444;
+  --radius: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+.mov-shell {
+  min-height: 100vh;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px 18px 60px;
+}
+
+.mov-shell--center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mov-header {
+  margin-bottom: 20px;
+}
+
+.mov-header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.mov-muted {
+  color: var(--color-muted);
+  margin: 4px 0 0;
+}
+
+.mov-error {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.mov-login-card {
+  display: grid;
+  gap: 14px;
+  width: min(360px, 100%);
+  padding: 28px 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.mov-login-card h1 {
+  margin: 0;
+}
+
+.mov-field {
+  display: grid;
+  gap: 6px;
+}
+
+.mov-field span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.mov-field input {
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg);
+  font-size: 16px;
+}
+
+.mov-field input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.mov-button {
+  min-height: 46px;
+  border: none;
+  border-radius: 12px;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mov-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.mov-back {
+  border: none;
+  background: none;
+  color: var(--color-muted);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.mov-app-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.mov-app-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.mov-app-card:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent);
+}
+
+.mov-app-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.mov-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.mov-detail-item {
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+}
+
+.mov-detail-item__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.mov-detail-item__label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.mov-detail-item__time {
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.mov-detail-item__text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
