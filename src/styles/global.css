@@ -34,12 +34,6 @@ input {
   padding: 24px 18px 60px;
 }
 
-.mov-shell--center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .mov-header {
   margin-bottom: 20px;
 }
@@ -57,60 +51,6 @@ input {
 .mov-error {
   color: var(--color-danger);
   font-weight: 600;
-}
-
-.mov-login-card {
-  display: grid;
-  gap: 14px;
-  width: min(360px, 100%);
-  padding: 28px 24px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-}
-
-.mov-login-card h1 {
-  margin: 0;
-}
-
-.mov-field {
-  display: grid;
-  gap: 6px;
-}
-
-.mov-field span {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--color-muted);
-}
-
-.mov-field input {
-  min-height: 46px;
-  padding: 10px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-bg);
-  font-size: 16px;
-}
-
-.mov-field input:focus {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
-}
-
-.mov-button {
-  min-height: 46px;
-  border: none;
-  border-radius: 12px;
-  background: var(--color-accent);
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mov-button:disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 
 .mov-back {
