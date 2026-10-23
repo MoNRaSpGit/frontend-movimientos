@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { fetchDetail, fetchSummary } from "./movimientos.client";
-import type { MovimientosAppSummary, MovimientosDetailItem } from "./movimientos.types";
+import type { MovimientosAppSummary, MovimientosClientSummary, MovimientosDetailItem } from "./movimientos.types";
+
+// "Visto" por cliente: la clave es app:cliente (ej. "gym:alegym").
+function clientSeenKey(appKey: string, clientKey: string) {
+  return `${appKey}:${clientKey}`;
+}
+
+// Cliente "Todos": el detalle de la app completa, sin filtrar.
+const ALL_CLIENTS: MovimientosClientSummary = { key: "", label: "Todos", count: 0 };
 
 // Fecha de hoy en Montevideo, como YYYY-MM-DD -- valor por defecto del
 // selector de fecha del detalle.
@@ -47,7 +55,10 @@ export function MovimientosApp() {
   const [summaryError, setSummaryError] = useState("");
   const [seen, setSeen] = useState<SeenState>(() => loadSeenState());
 
-  const [selectedApp, setSelectedApp] = useState<MovimientosAppSummary | null>(null);
+  const [selectedAppKey, setSelectedAppKey] = useState<string | null>(null);
+  // Apps con clientes (Gym): primero se elige el cliente, despues se ve
+  // su detalle. null = pantalla de eleccion de cliente.
+  const [selectedClient, setSelectedClient] = useState<MovimientosClientSummary | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => todayDayLabel());
   const [detailItems, setDetailItems] = useState<MovimientosDetailItem[] | null>(null);
   const [detailError, setDetailError] = useState("");
@@ -73,50 +84,113 @@ export function MovimientosApp() {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  function loadDetail(appKey: string, date: string) {
+  // Se busca siempre en la ultima lista (se refresca cada 30s) para que
+  // los numeritos de los clientes esten al dia.
+  const selectedApp = apps?.find((app) => app.key === selectedAppKey) ?? null;
+
+  function loadDetail(appKey: string, date: string, client?: string) {
     setDetailItems(null);
     setDetailError("");
-    fetchDetail(appKey, date)
+    fetchDetail(appKey, date, client)
       .then(setDetailItems)
       .catch((error) => setDetailError(error instanceof Error ? error.message : "No se pudo cargar el detalle."));
   }
 
-  function handleOpenApp(app: MovimientosAppSummary) {
-    setSelectedApp(app);
+  // Marca como "visto" el total de hoy -- el badge no vuelve a aparecer
+  // hasta que haya movimientos nuevos por encima de este numero.
+  function markSeen(entries: Record<string, number>) {
     const today = todayDayLabel();
-    setSelectedDate(today);
-    loadDetail(app.key, today);
-
-    // Marca como "visto" el total de hoy -- el badge de esta app no
-    // vuelve a aparecer hasta que haya movimientos nuevos por encima de
-    // este numero.
     setSeen((current) => {
       const base = current.dayLabel === today ? current : { dayLabel: today, counts: {} };
-      const next = { dayLabel: today, counts: { ...base.counts, [app.key]: app.count } };
+      const next = { dayLabel: today, counts: { ...base.counts, ...entries } };
       saveSeenState(next);
       return next;
     });
   }
 
+  function handleOpenApp(app: MovimientosAppSummary) {
+    setSelectedAppKey(app.key);
+    setSelectedClient(null);
+    if (app.clients && app.clients.length > 0) return;
+    const today = todayDayLabel();
+    setSelectedDate(today);
+    loadDetail(app.key, today);
+    markSeen({ [app.key]: app.count });
+  }
+
+  function handleOpenClient(app: MovimientosAppSummary, client: MovimientosClientSummary) {
+    setSelectedClient(client);
+    const today = todayDayLabel();
+    setSelectedDate(today);
+    loadDetail(app.key, today, client.key || undefined);
+    const clients = client.key ? [client] : (app.clients ?? []);
+    markSeen(Object.fromEntries(clients.map((entry) => [clientSeenKey(app.key, entry.key), entry.count])));
+  }
+
   function handleDateChange(date: string) {
     setSelectedDate(date);
-    if (selectedApp) loadDetail(selectedApp.key, date);
+    if (selectedApp) loadDetail(selectedApp.key, date, selectedClient?.key || undefined);
+  }
+
+  function handleBack() {
+    if (selectedApp?.clients && selectedClient) setSelectedClient(null);
+    else setSelectedAppKey(null);
+  }
+
+  function seenCount(key: string) {
+    return seen.dayLabel === todayDayLabel() ? (seen.counts[key] ?? 0) : 0;
+  }
+
+  function clientBadgeCount(app: MovimientosAppSummary, client: MovimientosClientSummary) {
+    return Math.max(0, client.count - seenCount(clientSeenKey(app.key, client.key)));
   }
 
   function visibleBadgeCount(app: MovimientosAppSummary) {
-    const seenCount = seen.dayLabel === todayDayLabel() ? (seen.counts[app.key] ?? 0) : 0;
-    return Math.max(0, app.count - seenCount);
+    if (app.clients) return app.clients.reduce((total, client) => total + clientBadgeCount(app, client), 0);
+    return Math.max(0, app.count - seenCount(app.key));
   }
 
-  if (selectedApp) {
+  // Gym (y cualquier app con clientes): primero se elige el cliente.
+  if (selectedApp && selectedApp.clients && !selectedClient) {
+    const app = selectedApp;
     return (
       <main className="mov-shell">
         <header className="mov-header">
-          <button type="button" className="mov-back" onClick={() => setSelectedApp(null)}>
+          <button type="button" className="mov-back" onClick={handleBack}>
+            ← Volver
+          </button>
+          <h1>{app.label}</h1>
+          <p className="mov-muted">Elegí el cliente</p>
+        </header>
+
+        <ul className="mov-app-grid">
+          {(app.clients ?? []).map((client) => (
+            <li key={client.key}>
+              <button type="button" className="mov-app-card" onClick={() => handleOpenClient(app, client)}>
+                <span className="mov-app-card__label">{client.label}</span>
+                {clientBadgeCount(app, client) > 0 ? <span className="mov-app-card__badge">{clientBadgeCount(app, client)}</span> : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <button type="button" className="mov-all-button" onClick={() => handleOpenClient(app, ALL_CLIENTS)}>
+          Ver todos juntos
+        </button>
+      </main>
+    );
+  }
+
+  if (selectedApp) {
+    const title = selectedClient ? `${selectedApp.label} · ${selectedClient.label}` : selectedApp.label;
+    return (
+      <main className="mov-shell">
+        <header className="mov-header">
+          <button type="button" className="mov-back" onClick={handleBack}>
             ← Volver
           </button>
           <div className="mov-detail-header-row">
-            <h1>{selectedApp.label}</h1>
+            <h1>{title}</h1>
             <input
               type="date"
               className="mov-date-input"

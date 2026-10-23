@@ -171,3 +171,15 @@ input {
   font-size: 0.92rem;
   line-height: 1.4;
 }
+
+/* "Ver todos juntos" en la eleccion de cliente (Gym, 23/10/2026). */
+.mov-all-button {
+  margin-top: 16px;
+  padding: 10px 16px;
+  border: 1px dashed var(--color-border, #d0d5dd);
+  border-radius: 12px;
+  background: none;
+  color: var(--color-muted);
+  font-weight: 600;
+  cursor: pointer;
+}

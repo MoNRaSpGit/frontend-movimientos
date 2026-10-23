@@ -19,7 +19,11 @@ export function fetchSummary() {
   return request<MovimientosAppSummary[]>("/summary");
 }
 
-export function fetchDetail(appKey: string, date?: string) {
-  const query = date ? `?date=${date}` : "";
+// client: un cliente de la app (ej. un gimnasio); sin client, todos juntos.
+export function fetchDetail(appKey: string, date?: string, client?: string) {
+  const params = new URLSearchParams();
+  if (date) params.set("date", date);
+  if (client) params.set("client", client);
+  const query = params.toString() ? `?${params}` : "";
   return request<MovimientosDetailItem[]>(`/${appKey}/detail${query}`);
 }
