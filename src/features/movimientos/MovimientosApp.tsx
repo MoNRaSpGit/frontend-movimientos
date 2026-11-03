@@ -112,17 +112,13 @@ export function MovimientosApp() {
     setSelectedAppKey(app.key);
     setSelectedClient(null);
     if (app.clients && app.clients.length > 0) return;
-    const today = todayDayLabel();
-    setSelectedDate(today);
-    loadDetail(app.key, today);
+    loadDetail(app.key, selectedDate);
     markSeen({ [app.key]: app.count });
   }
 
   function handleOpenClient(app: MovimientosAppSummary, client: MovimientosClientSummary) {
     setSelectedClient(client);
-    const today = todayDayLabel();
-    setSelectedDate(today);
-    loadDetail(app.key, today, client.key || undefined);
+    loadDetail(app.key, selectedDate, client.key || undefined);
     const clients = client.key ? [client] : (app.clients ?? []);
     markSeen(Object.fromEntries(clients.map((entry) => [clientSeenKey(app.key, entry.key), entry.count])));
   }
@@ -226,8 +222,17 @@ export function MovimientosApp() {
   return (
     <main className="mov-shell">
       <header className="mov-header">
-        <h1>Movimientos</h1>
-        <p className="mov-muted">Hoy</p>
+        <div className="mov-detail-header-row">
+          <h1>Movimientos</h1>
+          <input
+            type="date"
+            className="mov-date-input"
+            value={selectedDate}
+            max={todayDayLabel()}
+            onChange={(event) => handleDateChange(event.target.value)}
+          />
+        </div>
+        <p className="mov-muted">{selectedDate === todayDayLabel() ? "Hoy" : selectedDate}</p>
       </header>
 
       {summaryError && <p className="mov-error">{summaryError}</p>}
