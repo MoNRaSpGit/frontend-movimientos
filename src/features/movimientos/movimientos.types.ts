@@ -17,6 +17,8 @@ export type MovimientosAppSummary = {
   // Cantidad de movimientos de HOY (altas/ediciones/borrados/ventas,
   // segun lo que tenga sentido para cada app). 0 = sin novedades.
   count: number;
+  // Solo QQ: visitas de hoy al catalogo.
+  visitsToday?: number;
 };
 
 export type MovimientosDetailItem = {

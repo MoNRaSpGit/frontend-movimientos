@@ -202,6 +202,15 @@ export function MovimientosApp() {
         {!detailError && detailItems !== null && detailItems.length === 0 && (
           <p className="mov-muted">Sin movimientos hoy.</p>
         )}
+        {selectedApp.key === "qq" && detailItems && (
+          <p className="mov-visits-banner">
+            {(() => {
+              const visits = detailItems.filter((item) => item.label === "Visitante · entró").length;
+              const when = selectedDate === todayDayLabel() ? "hoy" : "ese día";
+              return visits === 1 ? `1 visita ${when}` : `${visits} visitas ${when}`;
+            })()}
+          </p>
+        )}
         {detailItems && detailItems.length > 0 && (
           <ul className="mov-detail-list">
             {detailItems.map((item, index) => (
@@ -245,6 +254,11 @@ export function MovimientosApp() {
               <button type="button" className="mov-app-card" onClick={() => handleOpenApp(app)}>
                 <span className="mov-app-card__label">{app.label}</span>
                 {visibleBadgeCount(app) > 0 ? <span className="mov-app-card__badge">{visibleBadgeCount(app)}</span> : null}
+                {app.visitsToday !== undefined && selectedDate === todayDayLabel() ? (
+                  <span className="mov-app-card__visits">
+                    {app.visitsToday === 1 ? "1 visita hoy" : `${app.visitsToday} visitas hoy`}
+                  </span>
+                ) : null}
               </button>
             </li>
           ))}

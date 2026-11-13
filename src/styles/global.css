@@ -183,3 +183,7 @@ input {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Visitas de QQ (13/11/2026). */
+.mov-app-card__visits { display: block; margin-top: 4px; font-size: 0.8rem; font-weight: 600; color: #15803d; }
+.mov-visits-banner { margin: 0 0 12px; padding: 10px 14px; font-weight: 800; font-size: 1.1rem; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; }
