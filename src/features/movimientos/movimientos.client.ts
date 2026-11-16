@@ -15,8 +15,9 @@ async function request<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function fetchSummary() {
-  return request<MovimientosAppSummary[]>("/summary");
+// date (YYYY-MM-DD): resumen de ese dia; sin date, hoy.
+export function fetchSummary(date?: string) {
+  return request<MovimientosAppSummary[]>(date ? `/summary?date=${encodeURIComponent(date)}` : "/summary");
 }
 
 // client: un cliente de la app (ej. un gimnasio); sin client, todos juntos.

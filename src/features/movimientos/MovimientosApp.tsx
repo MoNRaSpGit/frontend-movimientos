@@ -25,26 +25,31 @@ function todayDayLabel() {
 // entonces (si no hay nada nuevo, no se muestra badge aunque haya habido
 // movimientos mas temprano). Se guarda por dia: al otro dia arranca de
 // cero para todas.
-const SEEN_STORAGE_KEY = "movimientos-seen";
+// Fix 16/11/2026: lo "visto" se guarda POR DIA (fecha -> conteos), asi si un
+// dia no entraste, al volver a esa fecha los numeritos siguen ahi; y cada
+// fecha elegida muestra los suyos. Se conservan los ultimos 30 dias.
+const SEEN_STORAGE_KEY = "movimientos-seen-by-day";
+const SEEN_DAYS_KEPT = 30;
 
-type SeenState = { dayLabel: string; counts: Record<string, number> };
+type SeenState = Record<string, Record<string, number>>;
 
 function loadSeenState(): SeenState {
-  const today = todayDayLabel();
   try {
     const raw = window.localStorage.getItem(SEEN_STORAGE_KEY);
-    if (!raw) return { dayLabel: today, counts: {} };
+    if (!raw) return {};
     const parsed = JSON.parse(raw) as SeenState;
-    if (parsed.dayLabel !== today) return { dayLabel: today, counts: {} };
-    return parsed;
+    return parsed && typeof parsed === "object" ? parsed : {};
   } catch {
-    return { dayLabel: today, counts: {} };
+    return {};
   }
 }
 
 function saveSeenState(state: SeenState) {
   try {
-    window.localStorage.setItem(SEEN_STORAGE_KEY, JSON.stringify(state));
+    const days = Object.keys(state).sort().slice(-SEEN_DAYS_KEPT);
+    const trimmed: SeenState = {};
+    for (const day of days) trimmed[day] = state[day];
+    window.localStorage.setItem(SEEN_STORAGE_KEY, JSON.stringify(trimmed));
   } catch {
     // ignore
   }
@@ -63,26 +68,33 @@ export function MovimientosApp() {
   const [detailItems, setDetailItems] = useState<MovimientosDetailItem[] | null>(null);
   const [detailError, setDetailError] = useState("");
 
-  function loadSummary(silent = false) {
-    if (!silent) setSummaryError("");
-    return fetchSummary()
-      .then((result) => {
-        setApps(result);
-        setSummaryError("");
-      })
-      .catch((error) => {
-        if (!silent) setSummaryError(error instanceof Error ? error.message : "No se pudo cargar.");
-      });
-  }
-
-  // Refresco silencioso cada 30s, mismo patron que el resto de las apps
-  // del monorepo (Panel de Joker/Piloto): asi el numerito de cada app se
-  // actualiza solo mientras la tenes abierta, sin recargar la pagina.
+  // El resumen (numeritos) es del dia elegido en el selector de fecha.
+  // Si se cambia de fecha mientras llega una respuesta vieja, se descarta.
   useEffect(() => {
-    void loadSummary();
-    const intervalId = window.setInterval(() => void loadSummary(true), 30000);
-    return () => window.clearInterval(intervalId);
-  }, []);
+    let cancelled = false;
+    function loadSummary(silent: boolean) {
+      if (!silent) {
+        setSummaryError("");
+        setApps(null);
+      }
+      fetchSummary(selectedDate)
+        .then((result) => {
+          if (cancelled) return;
+          setApps(result);
+          setSummaryError("");
+        })
+        .catch((error) => {
+          if (!cancelled && !silent) setSummaryError(error instanceof Error ? error.message : "No se pudo cargar.");
+        });
+    }
+    loadSummary(false);
+    // Refresco silencioso cada 30s: el numerito se actualiza solo.
+    const intervalId = window.setInterval(() => loadSummary(true), 30000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [selectedDate]);
 
   // Se busca siempre en la ultima lista (se refresca cada 30s) para que
   // los numeritos de los clientes esten al dia.
@@ -96,13 +108,12 @@ export function MovimientosApp() {
       .catch((error) => setDetailError(error instanceof Error ? error.message : "No se pudo cargar el detalle."));
   }
 
-  // Marca como "visto" el total de hoy -- el badge no vuelve a aparecer
-  // hasta que haya movimientos nuevos por encima de este numero.
+  // Marca como "visto" el total del dia elegido -- el badge no vuelve a
+  // aparecer hasta que haya movimientos nuevos por encima de este numero.
   function markSeen(entries: Record<string, number>) {
-    const today = todayDayLabel();
+    const day = selectedDate;
     setSeen((current) => {
-      const base = current.dayLabel === today ? current : { dayLabel: today, counts: {} };
-      const next = { dayLabel: today, counts: { ...base.counts, ...entries } };
+      const next = { ...current, [day]: { ...(current[day] ?? {}), ...entries } };
       saveSeenState(next);
       return next;
     });
@@ -134,7 +145,7 @@ export function MovimientosApp() {
   }
 
   function seenCount(key: string) {
-    return seen.dayLabel === todayDayLabel() ? (seen.counts[key] ?? 0) : 0;
+    return seen[selectedDate]?.[key] ?? 0;
   }
 
   function clientBadgeCount(app: MovimientosAppSummary, client: MovimientosClientSummary) {
@@ -254,9 +265,12 @@ export function MovimientosApp() {
               <button type="button" className="mov-app-card" onClick={() => handleOpenApp(app)}>
                 <span className="mov-app-card__label">{app.label}</span>
                 {visibleBadgeCount(app) > 0 ? <span className="mov-app-card__badge">{visibleBadgeCount(app)}</span> : null}
-                {app.visitsToday !== undefined && selectedDate === todayDayLabel() ? (
+                {app.visitsToday !== undefined ? (
                   <span className="mov-app-card__visits">
-                    {app.visitsToday === 1 ? "1 visita hoy" : `${app.visitsToday} visitas hoy`}
+                    {(() => {
+                      const when = selectedDate === todayDayLabel() ? "hoy" : "ese día";
+                      return app.visitsToday === 1 ? `1 visita ${when}` : `${app.visitsToday} visitas ${when}`;
+                    })()}
                   </span>
                 ) : null}
               </button>
