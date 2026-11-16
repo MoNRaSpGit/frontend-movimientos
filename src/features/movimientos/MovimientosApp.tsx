@@ -213,7 +213,7 @@ export function MovimientosApp() {
         {!detailError && detailItems !== null && detailItems.length === 0 && (
           <p className="mov-muted">Sin movimientos hoy.</p>
         )}
-        {selectedApp.key === "qq" && detailItems && (
+        {(selectedApp.key === "qq" || selectedApp.key === "ropa") && detailItems && (
           <p className="mov-visits-banner">
             {(() => {
               const visits = detailItems.filter((item) => item.label === "Visitante · entró").length;
