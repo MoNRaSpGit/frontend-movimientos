@@ -265,7 +265,23 @@ export function MovimientosApp() {
               <button type="button" className="mov-app-card" onClick={() => handleOpenApp(app)}>
                 <span className="mov-app-card__label">{app.label}</span>
                 {visibleBadgeCount(app) > 0 ? <span className="mov-app-card__badge">{visibleBadgeCount(app)}</span> : null}
-                {app.visitsToday !== undefined ? (
+                {/* 21/11/2026: recuadro destacado con lo mismo que ve la clienta + WhatsApp. */}
+                {app.visitStats ? (
+                  <span className="mov-visit-box">
+                    <span>
+                      <b>{app.visitStats.visits}</b> visitas
+                    </span>
+                    <span>
+                      <b>{app.visitStats.views}</b> productos vistos
+                    </span>
+                    <span>
+                      <b>{app.visitStats.carts}</b> al carrito
+                    </span>
+                    <span>
+                      <b>{app.visitStats.whatsapp}</b> WhatsApp
+                    </span>
+                  </span>
+                ) : app.visitsToday !== undefined ? (
                   <span className="mov-app-card__visits">
                     {(() => {
                       const when = selectedDate === todayDayLabel() ? "hoy" : "ese día";

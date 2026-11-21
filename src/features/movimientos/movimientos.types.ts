@@ -19,6 +19,7 @@ export type MovimientosAppSummary = {
   count: number;
   // Solo QQ: visitas de hoy al catalogo.
   visitsToday?: number;
+  visitStats?: { visits: number; views: number; carts: number; whatsapp: number };
 };
 
 export type MovimientosDetailItem = {
